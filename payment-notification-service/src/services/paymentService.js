@@ -1,43 +1,31 @@
 const axios = require('axios');
-// const db = require('../config/db'); // XÓA DÒNG NÀY
+const db = require('../config/db'); // Sử dụng lại kết nối DB
 const { ORDER_SERVICE_URL } = require('../config/constants');
 const { sendNotification } = require('./notificationService');
-
-// Khởi tạo mảng lưu trữ local thay cho Database
-const localPayments = [];
 
 const processPayment = async (paymentData) => {
     const { orderId, customerName, paymentMethod } = paymentData;
 
     try {
-        // 1. Gọi Order Service để cập nhật trạng thái 
+        // 1. Gọi Order Service cập nhật trạng thái bên máy Người 4
         //
         await axios.put(`${ORDER_SERVICE_URL}/${orderId}`, {
             status: "PAID"
         });
 
-        // 2. Lưu lịch sử vào mảng Local 
-        const newPayment = {
-            id: localPayments.length + 1,
-            orderId,
-            customerName,
-            paymentMethod,
-            status: 'SUCCESS',
-            createdAt: new Date()
-        };
-        localPayments.push(newPayment);
-        
-        console.log("✅ Đã lưu thanh toán vào bộ nhớ Local:", newPayment);
+        // 2. Lưu lịch sử vào MariaDB
+        //
+        const sql = `INSERT INTO payments (order_id, customer_name, payment_method, status) VALUES (?, ?, ?, ?)`;
+        await db.execute(sql, [orderId, customerName, paymentMethod, 'SUCCESS']);
 
-        // 3. Gửi thông báo
+        // 3. Gửi thông báo ra console
         //
         const notice = sendNotification(customerName, orderId);
 
         return { 
             success: true, 
             message: notice, 
-            dbStatus: "Saved to Local Memory (No DB)",
-            data: newPayment 
+            dbStatus: "Saved to MariaDB Successfully" 
         };
     } catch (error) {
         console.error("Lỗi:", error.message);
@@ -45,4 +33,4 @@ const processPayment = async (paymentData) => {
     }
 };
 
-module.exports = { processPayment, localPayments };
+module.exports = { processPayment };
