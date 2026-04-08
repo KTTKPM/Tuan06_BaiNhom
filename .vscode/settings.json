@@ -3,6 +3,7 @@
         "where": true,
         ".\\mvnw.cmd": true,
         "mariadb": true,
-        "mysql": true
+        "mysql": true,
+        "Get-CimInstance": true
     }
 }
