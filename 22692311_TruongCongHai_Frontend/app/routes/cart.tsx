@@ -41,11 +41,8 @@ export default function CartPage() {
 
     try {
       const order = await placeOrder({
-        userId: user.id,
-        items: items.map((item) => ({
-          foodId: item.food.id,
-          quantity: item.quantity,
-        })),
+        userId: String(user.id),
+        totalAmount,
       });
 
       clearCart();

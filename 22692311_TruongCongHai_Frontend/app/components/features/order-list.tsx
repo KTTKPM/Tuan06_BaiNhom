@@ -5,14 +5,12 @@ interface OrderListProps {
   orders: Order[];
   isLoading: boolean;
   errorMessage: string | null;
-  renderPaymentForm: (order: Order) => React.ReactNode;
 }
 
 export function OrderList({
   orders,
   isLoading,
   errorMessage,
-  renderPaymentForm,
 }: OrderListProps) {
   if (isLoading) {
     return (
@@ -47,27 +45,16 @@ export function OrderList({
         <article key={order.id} className="rounded-lg border border-border bg-card p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-semibold">Don #{order.id}</h3>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="rounded-md bg-muted px-2 py-1">Order: {order.status}</span>
-              <span className="rounded-md bg-muted px-2 py-1">Payment: {order.paymentStatus}</span>
-            </div>
+            <span className="rounded-md bg-muted px-2 py-1 text-sm">Order: {order.status}</span>
           </div>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Tao luc: {formatDateTime(order.createdAt)}
           </p>
 
-          <ul className="mt-3 list-disc pl-6 text-sm text-muted-foreground">
-            {order.items.map((item) => (
-              <li key={`${order.id}-${item.foodId}`}>
-                {item.name} x {item.quantity} ({formatCurrency(item.price)})
-              </li>
-            ))}
-          </ul>
+          <p className="mt-1 text-sm text-muted-foreground">User ID: {order.userId}</p>
 
-          <p className="mt-3 font-semibold">Tong tien: {formatCurrency(order.totalAmount)}</p>
-
-          <div className="mt-4">{renderPaymentForm(order)}</div>
+          <p className="mt-3 font-semibold">Tong tien: {formatCurrency(Number(order.totalAmount))}</p>
         </article>
       ))}
     </div>

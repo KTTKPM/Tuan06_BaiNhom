@@ -1,31 +1,39 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { OrderList } from "~/components/features/order-list";
-import { PaymentForm } from "~/components/features/payment-form";
 import { useAuth } from "~/hooks/use-auth";
 import { useNotification } from "~/hooks/use-notification";
 import { useOrders } from "~/hooks/use-orders";
 import { useRequireAuth } from "~/hooks/use-route-guards";
-import type { Order } from "~/types/models";
 
 export default function OrdersPage() {
   useRequireAuth();
 
   const { user, isReady, isAuthenticated } = useAuth();
-  const { orders, isLoading, refreshOrders, upsertOrder } = useOrders();
+  const { orders, isLoading, refreshOrders } = useOrders();
   const notification = useNotification();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const visibleOrders = useMemo(() => {
+    if (!user) {
+      return [];
+    }
+
+    if (user.role === "ADMIN") {
+      return orders;
+    }
+
+    return orders.filter((order) => String(order.userId) === String(user.id));
+  }, [orders, user]);
 
   useEffect(() => {
     if (!isReady || !isAuthenticated || !user) {
       return;
     }
 
-    const userId = user.role === "ADMIN" ? undefined : user.id;
-
     void (async () => {
       try {
-        await refreshOrders(userId);
+        await refreshOrders();
       } catch (ordersError) {
         const message =
           ordersError && typeof ordersError === "object" && "message" in ordersError
@@ -45,38 +53,14 @@ export default function OrdersPage() {
     return null;
   }
 
-  function handlePaidOrder(order: Order) {
-    upsertOrder(order);
-  }
-
   return (
     <section className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold">Don hang</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Theo doi trang thai don va thanh toan COD/Banking.
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">Danh sach don hang cua he thong.</p>
       </header>
 
-      <OrderList
-        orders={orders}
-        isLoading={isLoading}
-        errorMessage={errorMessage}
-        renderPaymentForm={(order) => {
-          if (order.paymentStatus === "PAID") {
-            return <p className="text-sm text-emerald-600">Don hang da thanh toan.</p>;
-          }
-
-          return (
-            <PaymentForm
-              orderId={order.id}
-              userId={user.id}
-              onPaid={handlePaidOrder}
-              disabled={order.status === "CANCELLED"}
-            />
-          );
-        }}
-      />
+      <OrderList orders={visibleOrders} isLoading={isLoading} errorMessage={errorMessage} />
     </section>
   );
 }

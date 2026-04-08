@@ -24,12 +24,7 @@ export interface CartItem {
   quantity: number;
 }
 
-export interface CreateOrderItem {
-  foodId: number | string;
-  quantity: number;
-}
-
-export type OrderStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+export type OrderStatus = string;
 export type PaymentStatus = "UNPAID" | "PAID" | "FAILED";
 export type PaymentMethod = "COD" | "BANKING";
 
@@ -42,17 +37,16 @@ export interface OrderItem {
 
 export interface Order {
   id: number | string;
-  userId: number | string;
-  items: OrderItem[];
-  totalAmount: number;
+  userId: string;
+  totalAmount: number | string;
   status: OrderStatus;
-  paymentStatus: PaymentStatus;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CreateOrderPayload {
-  userId: number | string;
-  items: CreateOrderItem[];
+  userId: string;
+  totalAmount: number;
 }
 
 export interface PaymentPayload {

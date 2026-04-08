@@ -7,9 +7,8 @@ interface OrderContextValue {
   orders: Order[];
   isLoading: boolean;
   isSubmitting: boolean;
-  refreshOrders: (userId?: string | number) => Promise<void>;
+  refreshOrders: () => Promise<void>;
   placeOrder: (payload: CreateOrderPayload) => Promise<Order>;
-  upsertOrder: (order: Order) => void;
 }
 
 export const OrderContext = createContext<OrderContextValue | undefined>(undefined);
@@ -19,11 +18,11 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const refreshOrders = useCallback(async (userId?: string | number) => {
+  const refreshOrders = useCallback(async () => {
     setIsLoading(true);
 
     try {
-      const response = await getOrders(userId);
+      const response = await getOrders();
       setOrders(response);
     } finally {
       setIsLoading(false);
@@ -42,20 +41,6 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const upsertOrder = useCallback((order: Order) => {
-    setOrders((current) => {
-      const index = current.findIndex((item) => item.id === order.id);
-
-      if (index === -1) {
-        return [order, ...current];
-      }
-
-      const cloned = [...current];
-      cloned[index] = order;
-      return cloned;
-    });
-  }, []);
-
   const value = useMemo(
     () => ({
       orders,
@@ -63,9 +48,8 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       isSubmitting,
       refreshOrders,
       placeOrder,
-      upsertOrder,
     }),
-    [orders, isLoading, isSubmitting, refreshOrders, placeOrder, upsertOrder],
+    [orders, isLoading, isSubmitting, refreshOrders, placeOrder],
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

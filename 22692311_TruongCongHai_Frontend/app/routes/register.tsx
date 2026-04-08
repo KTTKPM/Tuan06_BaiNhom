@@ -24,10 +24,12 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function handlePayloadChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handlePayloadChange(
+    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) {
     const { name, value } = event.target;
 
-    if (name === "username" || name === "password") {
+    if (name === "username" || name === "password" || name === "role") {
       setPayload((previous) => ({ ...previous, [name]: value }));
     }
   }
@@ -106,6 +108,23 @@ export default function RegisterPage() {
         </div>
 
         <div className="space-y-2">
+          <label htmlFor="role" className="text-sm font-medium">
+            Vai tro
+          </label>
+          <select
+            id="role"
+            name="role"
+            value={payload.role ?? "USER"}
+            onChange={handlePayloadChange}
+            className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            required
+          >
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+
+        <div className="space-y-2">
           <label htmlFor="confirmPassword" className="text-sm font-medium">
             Xac nhan mat khau
           </label>
@@ -126,7 +145,7 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <p className="mt-4 text-sm text-muted-foreground">
+      <p className="mt-4 text-sm text-center text-muted-foreground">
         Da co tai khoan? <Link to={APP_ROUTES.login} className="font-medium text-primary">Dang nhap</Link>
       </p>
     </section>
