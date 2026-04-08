@@ -18,8 +18,9 @@ import type { Food } from "~/types/models";
 
 const defaultFoodForm = {
   name: "",
+  category: "",
   price: "",
-  description: "",
+  available: "true",
 };
 
 export default function FoodsPage() {
@@ -73,8 +74,9 @@ export default function FoodsPage() {
     setEditingFoodId(food.id);
     setFoodForm({
       name: food.name,
+      category: food.category,
       price: String(food.price),
-      description: food.description,
+      available: String(food.available),
     });
   }
 
@@ -87,13 +89,24 @@ export default function FoodsPage() {
     event.preventDefault();
 
     const payload: UpsertFoodPayload = {
-      name: foodForm.name,
+      name: foodForm.name.trim(),
+      category: foodForm.category.trim(),
       price: Number(foodForm.price),
-      description: foodForm.description,
+      available: foodForm.available === "true",
     };
 
-    if (!payload.name.trim() || !payload.description.trim() || Number.isNaN(payload.price)) {
-      notification.error("Vui long nhap day du thong tin mon an hop le");
+    if (!payload.name || payload.name.length > 120) {
+      notification.error("Ten mon khong hop le (toi da 120 ky tu)");
+      return;
+    }
+
+    if (!payload.category || payload.category.length > 60) {
+      notification.error("Danh muc khong hop le (toi da 60 ky tu)");
+      return;
+    }
+
+    if (Number.isNaN(payload.price) || payload.price <= 0) {
+      notification.error("Gia mon phai lon hon 0");
       return;
     }
 
@@ -174,21 +187,33 @@ export default function FoodsPage() {
               }
             />
             <Input
+              placeholder="Danh muc"
+              value={foodForm.category}
+              onChange={(event) =>
+                setFoodForm((current) => ({ ...current, category: event.target.value }))
+              }
+            />
+            <Input
               type="number"
-              min={0}
+              min={0.01}
+              step="0.01"
               placeholder="Gia"
               value={foodForm.price}
               onChange={(event) =>
                 setFoodForm((current) => ({ ...current, price: event.target.value }))
               }
             />
-            <Input
-              placeholder="Mo ta"
-              value={foodForm.description}
+
+            <select
+              className="h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              value={foodForm.available}
               onChange={(event) =>
-                setFoodForm((current) => ({ ...current, description: event.target.value }))
+                setFoodForm((current) => ({ ...current, available: event.target.value }))
               }
-            />
+            >
+              <option value="true">Con ban</option>
+              <option value="false">Het hang</option>
+            </select>
 
             <div className="md:col-span-3 flex flex-wrap gap-2">
               <Button type="submit" disabled={isSubmittingFood}>

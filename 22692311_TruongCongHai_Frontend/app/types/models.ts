@@ -15,8 +15,9 @@ export interface AuthSession {
 export interface Food {
   id: number | string;
   name: string;
+  category: string;
   price: number;
-  description: string;
+  available: boolean;
 }
 
 export interface CartItem {
