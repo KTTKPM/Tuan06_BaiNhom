@@ -7,23 +7,18 @@ class UserService {
     async register(userData) {
         const { username, password, role } = userData;
         
-        if (userRepository.findByUsername(username)) {
-            throw new Error("Tên đăng nhập đã tồn tại!");
-        }
+        // PHẢI có await ở đây
+        const existing = await userRepository.findByUsername(username);
+        if (existing) throw new Error("Tên đăng nhập đã tồn tại!");
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        const newUser = {
-            username,
-            password: hashedPassword,
-            role: role || 'USER'
-        };
+        const newUser = { username, password: hashedPassword, role: role || 'USER' };
 
-        return userRepository.save(newUser);
+        return await userRepository.save(newUser);
     }
 
     async login(username, password) {
-        const user = userRepository.findByUsername(username);
+        const user = await userRepository.findByUsername(username);
         if (!user) throw new Error("Người dùng không tồn tại!");
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -38,8 +33,8 @@ class UserService {
         return { token, user };
     }
 
-    getAll() {
-        return userRepository.findAll();
+    async getAll() {
+        return await userRepository.findAll();
     }
 }
 

@@ -11,9 +11,7 @@ router.post('/register', async (req, res, next) => {
             message: "Đăng ký thành công",
             data: new UserResponseDTO(user)
         });
-    } catch (error) {
-        next(error);
-    }
+    } catch (error) { next(error); }
 });
 
 router.post('/login', async (req, res, next) => {
@@ -21,23 +19,17 @@ router.post('/login', async (req, res, next) => {
         const { username, password } = req.body;
         const result = await userService.login(username, password);
         res.json({
-            message: "Đăng nhập thành công",
             token: result.token,
             user: new UserResponseDTO(result.user)
         });
-    } catch (error) {
-        next(error);
-    }
+    } catch (error) { next(error); }
 });
 
-router.get('/', authFilter, (req, res, next) => {
+router.get('/', authFilter, async (req, res, next) => {
     try {
-        const users = userService.getAll();
-        const dtos = users.map(u => new UserResponseDTO(u));
-        res.json(dtos);
-    } catch (error) {
-        next(error);
-    }
+        const users = await userService.getAll();
+        res.json(users.map(u => new UserResponseDTO(u)));
+    } catch (error) { next(error); }
 });
 
 module.exports = router;
