@@ -1,13 +1,26 @@
-import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { Navigate } from "react-router";
 
-export function meta({}: Route.MetaArgs) {
+import { useAuth } from "~/hooks/use-auth";
+import { APP_ROUTES } from "~/lib/constants";
+
+export function meta() {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "Mini Food Ordering" },
+    { name: "description", content: "Mini Food Ordering System UI" },
   ];
 }
 
 export default function Home() {
-  return <Welcome />;
+  const { isReady, isAuthenticated } = useAuth();
+
+  if (!isReady) {
+    return <p>Dang khoi tao he thong...</p>;
+  }
+
+  return (
+    <Navigate
+      to={isAuthenticated ? APP_ROUTES.foods : APP_ROUTES.login}
+      replace
+    />
+  );
 }
