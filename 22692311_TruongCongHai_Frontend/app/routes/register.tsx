@@ -7,6 +7,7 @@ import { useAuth } from "~/hooks/use-auth";
 import { useNotification } from "~/hooks/use-notification";
 import { useRedirectIfAuthenticated } from "~/hooks/use-route-guards";
 import { APP_ROUTES } from "~/lib/constants";
+import type { RegisterPayload } from "~/services/auth.service";
 
 export default function RegisterPage() {
   useRedirectIfAuthenticated();
@@ -15,17 +16,27 @@ export default function RegisterPage() {
   const notification = useNotification();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [payload, setPayload] = useState<RegisterPayload>({
+    username: "",
+    password: "",
+    role: "USER",
+  });
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  function handlePayloadChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
+
+    if (name === "username" || name === "password") {
+      setPayload((previous) => ({ ...previous, [name]: value }));
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
-    if (password !== confirmPassword) {
+    if (payload.password !== confirmPassword) {
       const message = "Mat khau xac nhan khong khop";
       setError(message);
       notification.error(message);
@@ -33,7 +44,11 @@ export default function RegisterPage() {
     }
 
     try {
-      const hasSession = await register({ username, email, password });
+      const hasSession = await register({
+        username: payload.username.trim(),
+        password: payload.password,
+        role: payload.role,
+      });
       notification.success("Dang ky thanh cong");
 
       if (hasSession) {
@@ -67,21 +82,10 @@ export default function RegisterPage() {
           </label>
           <Input
             id="username"
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            required
-          />
-        </div>
-
-        <div className="space-y-2">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            name="username"
+            value={payload.username}
+            onChange={handlePayloadChange}
+            placeholder="Nhap username"
             required
           />
         </div>
@@ -92,9 +96,11 @@ export default function RegisterPage() {
           </label>
           <Input
             id="password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            value={payload.password}
+            onChange={handlePayloadChange}
+            placeholder="Nhap mat khau"
             required
           />
         </div>
@@ -108,6 +114,7 @@ export default function RegisterPage() {
             type="password"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
+            placeholder="Nhap lai mat khau"
             required
           />
         </div>

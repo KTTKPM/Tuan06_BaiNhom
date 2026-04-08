@@ -4,7 +4,12 @@ import { STORAGE_KEYS } from "~/lib/constants";
 
 const RETRYABLE_METHOD = "GET";
 const RETRYABLE_STATUS_CODES = new Set([429, 502, 503, 504]);
-const RETRYABLE_ENDPOINTS = new Set(["/foods", "/orders", "/users"]);
+const RETRYABLE_ENDPOINTS = new Set([
+  "/foods",
+  "/orders",
+  "/users",
+  "/api/users",
+]);
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = 300;
 const MAX_DELAY_MS = 3000;
@@ -15,7 +20,7 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
+    setTimeout(resolve, ms);
   });
 }
 
@@ -33,7 +38,13 @@ function normalizePath(url?: string): string {
   }
 
   const [pathOnly] = url.split("?");
-  return pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`;
+  const normalizedPath = pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`;
+
+  if (normalizedPath.length > 1 && normalizedPath.endsWith("/")) {
+    return normalizedPath.slice(0, -1);
+  }
+
+  return normalizedPath;
 }
 
 function isRetryableEndpoint(url?: string): boolean {

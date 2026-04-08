@@ -7,6 +7,7 @@ import { useAuth } from "~/hooks/use-auth";
 import { useNotification } from "~/hooks/use-notification";
 import { useRedirectIfAuthenticated } from "~/hooks/use-route-guards";
 import { APP_ROUTES } from "~/lib/constants";
+import type { LoginPayload } from "~/services/auth.service";
 
 export default function LoginPage() {
   useRedirectIfAuthenticated();
@@ -16,16 +17,29 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [usernameOrEmail, setUsernameOrEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [payload, setPayload] = useState<LoginPayload>({
+    username: "",
+    password: "",
+  });
   const [error, setError] = useState<string | null>(null);
+
+  function handlePayloadChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
+
+    if (name === "username" || name === "password") {
+      setPayload((previous) => ({ ...previous, [name]: value }));
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
 
     try {
-      await login({ usernameOrEmail, password });
+      await login({
+        username: payload.username.trim(),
+        password: payload.password,
+      });
       notification.success("Dang nhap thanh cong");
 
       const redirectTo =
@@ -53,14 +67,15 @@ export default function LoginPage() {
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <label htmlFor="usernameOrEmail" className="text-sm font-medium">
-            Username hoặc Email
+          <label htmlFor="username" className="text-sm font-medium">
+            Username
           </label>
           <Input
-            id="usernameOrEmail"
-            value={usernameOrEmail}
-            onChange={(event) => setUsernameOrEmail(event.target.value)}
-            placeholder="Nhap username hoac email"
+            id="username"
+            name="username"
+            value={payload.username}
+            onChange={handlePayloadChange}
+            placeholder="Nhap username"
             required
           />
         </div>
@@ -71,9 +86,10 @@ export default function LoginPage() {
           </label>
           <Input
             id="password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            value={payload.password}
+            onChange={handlePayloadChange}
             placeholder="Nhap mat khau"
             required
           />

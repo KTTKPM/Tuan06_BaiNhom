@@ -1,14 +1,16 @@
 import { userApi } from "~/services/http";
 import type { AuthSession, User } from "~/types/models";
 
+const USER_SERVICE_BASE_PATH = "/api/users";
+
 export interface RegisterPayload {
   username: string;
-  email: string;
   password: string;
+  role?: "USER" | "ADMIN";
 }
 
 export interface LoginPayload {
-  usernameOrEmail: string;
+  username: string;
   password: string;
 }
 
@@ -61,12 +63,15 @@ function normalizeAuthResponse(data: unknown): AuthSession | null {
 }
 
 export async function registerUser(input: RegisterPayload): Promise<AuthSession | null> {
-  const response = await userApi.post("/register", input);
+  const response = await userApi.post(`${USER_SERVICE_BASE_PATH}/register`, input);
   return normalizeAuthResponse(response.data);
 }
 
 export async function loginUser(input: LoginPayload): Promise<AuthSession> {
-  const response = await userApi.post("/login", input);
+  const response = await userApi.post(`${USER_SERVICE_BASE_PATH}/login`, {
+    username: input.username,
+    password: input.password,
+  });
   const session = normalizeAuthResponse(response.data);
 
   if (!session) {
@@ -77,6 +82,6 @@ export async function loginUser(input: LoginPayload): Promise<AuthSession> {
 }
 
 export async function getUsers(): Promise<User[]> {
-  const response = await userApi.get<User[]>("/users");
+  const response = await userApi.get<User[]>(USER_SERVICE_BASE_PATH);
   return response.data;
 }
