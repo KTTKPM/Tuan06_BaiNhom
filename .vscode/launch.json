@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-FoodServiceApplication<foodService>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "iuh.fit.foodService.FoodServiceApplication",
+            "projectName": "foodService",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
