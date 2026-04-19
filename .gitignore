@@ -9,3 +9,6 @@ skills-lock.json
 
 # Ignore environment files in all subdirectories
 **/.env
+
+/user-service/node_modules/
+/user-service/.env
