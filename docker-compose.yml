@@ -1,4 +1,4 @@
-x-backend-cors-origins: &backend-cors-origins "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:8084,http://user-service:8081,http://food-service:8082,http://cart-service:8083,http://payment-service:8084,http://frontend:3000"
+x-backend-cors-origins: &backend-cors-origins "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8080,http://127.0.0.1:8080,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:8084,http://user-service:8081,http://food-service:8082,http://cart-service:8083,http://payment-service:8084,http://api-gateway:8080,http://frontend:3000"
 
 services:
   cart-service:
@@ -62,15 +62,18 @@ services:
     networks:
       - app-net
 
-  frontend:
+  api-gateway:
     build:
-      context: ./frontend
-      args:
-        VITE_USER_SERVICE_URL: http://localhost:8081
-        VITE_FOOD_SERVICE_URL: http://localhost:8082
-        VITE_ORDER_SERVICE_URL: http://localhost:8083
-        VITE_PAYMENT_SERVICE_URL: http://localhost:8084
-    image: frontend:local
+      context: ./api-gateway
+    image: api-gateway:local
+    environment:
+      PORT: 8080
+      JWT_SECRET: local_dev_secret
+      USER_SERVICE_URL: http://user-service:8081
+      FOOD_SERVICE_URL: http://food-service:8082
+      ORDER_SERVICE_URL: http://cart-service:8083
+      PAYMENT_SERVICE_URL: http://payment-service:8084
+      CORS_ALLOWED_ORIGINS: *backend-cors-origins
     depends_on:
       user-service:
         condition: service_started
@@ -79,6 +82,25 @@ services:
       cart-service:
         condition: service_started
       payment-service:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_GATEWAY_URL: http://localhost:8080
+        VITE_USER_SERVICE_URL: http://localhost:8081
+        VITE_FOOD_SERVICE_URL: http://localhost:8082
+        VITE_ORDER_SERVICE_URL: http://localhost:8083
+        VITE_PAYMENT_SERVICE_URL: http://localhost:8084
+    image: frontend:local
+    depends_on:
+      api-gateway:
         condition: service_started
     ports:
       - "3000:3000"
