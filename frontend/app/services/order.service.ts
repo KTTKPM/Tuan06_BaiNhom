@@ -1,11 +1,9 @@
 import { orderApi } from "~/services/http";
 import type { CreateOrderPayload, Order } from "~/types/models";
 
-const ORDER_SERVICE_BASE_PATH = "/order";
-
 export async function createOrder(input: CreateOrderPayload): Promise<Order> {
-  const response = await orderApi.post(ORDER_SERVICE_BASE_PATH, input);
-  const order = response?.data?.data
+  const response = await orderApi.post("/", input);
+  const order = response?.data?.data;
 
   if (!order) {
     throw { message: "Invalid create order response from server" };
@@ -15,7 +13,7 @@ export async function createOrder(input: CreateOrderPayload): Promise<Order> {
 }
 
 export async function getOrders(): Promise<Order[]> {
-  const response = await orderApi.get(ORDER_SERVICE_BASE_PATH);
-  
-  return response?.data?.orders || []
+  const response = await orderApi.get("/");
+
+  return response?.data?.orders || [];
 }

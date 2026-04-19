@@ -1,29 +1,19 @@
 import axios, { AxiosError } from "axios";
-
 import { STORAGE_KEYS } from "~/lib/constants";
 
-function buildServiceBaseUrl(
-  serviceEnvName: "VITE_USER_SERVICE_URL" | "VITE_FOOD_SERVICE_URL" | "VITE_ORDER_SERVICE_URL" | "VITE_PAYMENT_SERVICE_URL",
-  fallback: string,
-): string {
-  const gatewayUrl = import.meta.env.VITE_API_GATEWAY_URL as string | undefined;
+function buildApiBaseUrl(): string {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
-  if (gatewayUrl) {
-    return gatewayUrl;
+  if (!apiBaseUrl) {
+    throw new Error("Missing required env: VITE_API_BASE_URL");
   }
 
-  const explicitServiceUrl = import.meta.env[serviceEnvName] as string | undefined;
-
-  if (explicitServiceUrl) {
-    return explicitServiceUrl;
-  }
-
-  return fallback;
+  return apiBaseUrl;
 }
 
-function createClient(baseURL: string) {
+function createClient(baseURL: string, extendedUrl: string) {
   const client = axios.create({
-    baseURL,
+    baseURL: baseURL + "/" + extendedUrl.replace(/^\/+/, ""),
     timeout: 10000,
     headers: {
       "Content-Type": "application/json",
@@ -57,18 +47,25 @@ function createClient(baseURL: string) {
   return client;
 }
 
+const API_BASE_URL = buildApiBaseUrl();
+
 export const userApi = createClient(
-  buildServiceBaseUrl("VITE_USER_SERVICE_URL", "http://localhost:8081"),
+  API_BASE_URL, 
+  "users"
 );
 
 export const foodApi = createClient(
-  buildServiceBaseUrl("VITE_FOOD_SERVICE_URL", "http://localhost:8082"),
+  API_BASE_URL,
+  "foods"
 );
 
 export const orderApi = createClient(
-  buildServiceBaseUrl("VITE_ORDER_SERVICE_URL", "http://localhost:8083"),
+  API_BASE_URL,
+  "orders"
+
 );
 
 export const paymentApi = createClient(
-  buildServiceBaseUrl("VITE_PAYMENT_SERVICE_URL", "http://localhost:8084"),
+  API_BASE_URL,
+  "payments"
 );

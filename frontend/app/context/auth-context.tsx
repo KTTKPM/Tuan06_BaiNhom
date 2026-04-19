@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const session = await loginUser(input);
       persistSession(session);
-      dispatch({ type: "SET_SESSION", payload: session });
+      dispatch({ type: "SET_SESSION", payload: session as AuthSession });
     } catch (error) {
       dispatch({ type: "SUBMIT_END" });
       throw error;
@@ -137,16 +137,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "SUBMIT_START" });
 
     try {
-      const session = await registerUser(input);
+      await registerUser(input);
 
-      if (session) {
-        persistSession(session);
-        dispatch({ type: "SET_SESSION", payload: session });
-        return true;
-      } else {
-        dispatch({ type: "SUBMIT_END" });
-        return false;
-      }
+      dispatch({ type: "SUBMIT_END" });
+      return true;
     } catch (error) {
       dispatch({ type: "SUBMIT_END" });
       throw error;
