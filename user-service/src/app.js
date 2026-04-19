@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const userController = require("./controllers/userController");
 const globalErrorHandler = require("./exceptions/globalExceptionHandler");
+const { initializeUsers } = require("./config/dbInit");
 
 const app = express();
 
@@ -55,9 +56,20 @@ app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 8081;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`-----------------------------------------`);
-  console.log(`USER SERVICE đang chạy tại cổng: ${PORT}`);
-  console.log(`Link test: http://localhost:${PORT}/api/users`);
-  console.log(`-----------------------------------------`);
-});
+async function startServer() {
+  try {
+    await initializeUsers();
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`-----------------------------------------`);
+      console.log(`USER SERVICE đang chạy tại cổng: ${PORT}`);
+      console.log(`Link test: http://localhost:${PORT}/api/users`);
+      console.log(`-----------------------------------------`);
+    });
+  } catch (error) {
+    console.error("[user-service] failed to initialize database", error);
+    process.exit(1);
+  }
+}
+
+startServer();
