@@ -1,0 +1,83 @@
+x-backend-cors-origins: &backend-cors-origins "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081,http://localhost:8082,http://localhost:8083,http://localhost:8084,http://user-service:8081,http://food-service:8082,http://cart-service:8083,http://payment-service:8084,http://frontend:3000"
+
+services:
+  cart-service:
+    build:
+      context: ./cart-service
+    image: cart-service:local
+    environment:
+      CORS_ALLOWED_ORIGINS: *backend-cors-origins
+    ports:
+      - "8083:8083"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  user-service:
+    build:
+      context: ./user-service
+    image: user-service:local
+    environment:
+      JWT_SECRET: local_dev_secret
+      CORS_ALLOWED_ORIGINS: *backend-cors-origins
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  food-service:
+    build:
+      context: ./foodService
+    image: food-service:local
+    environment:
+      CORS_ALLOWED_ORIGINS: *backend-cors-origins
+    ports:
+      - "8082:8082"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  payment-service:
+    build:
+      context: ./payment-notification-service
+    image: payment-service:local
+    environment:
+      ORDER_SERVICE_URL: http://cart-service:8083/order
+      CORS_ALLOWED_ORIGINS: *backend-cors-origins
+    depends_on:
+      cart-service:
+        condition: service_started
+    ports:
+      - "8084:8084"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_USER_SERVICE_URL: http://localhost:8081
+        VITE_FOOD_SERVICE_URL: http://localhost:8082
+        VITE_ORDER_SERVICE_URL: http://localhost:8083
+        VITE_PAYMENT_SERVICE_URL: http://localhost:8084
+    image: frontend:local
+    depends_on:
+      user-service:
+        condition: service_started
+      food-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      payment-service:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
