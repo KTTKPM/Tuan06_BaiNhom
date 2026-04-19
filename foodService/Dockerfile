@@ -39,18 +39,18 @@ fi
 mysqld --user=mysql --datadir=/var/lib/mysql --bind-address=127.0.0.1 --port=3306 --socket=/run/mysqld/mysqld.sock &
 
 for i in {1..60}; do
-	if mysqladmin ping -h 127.0.0.1 --silent; then
+	if mysqladmin --protocol=socket --user=root ping --silent; then
 		break
 	fi
 	sleep 1
 done
 
-mysql -h 127.0.0.1 -uroot -e "CREATE DATABASE IF NOT EXISTS food_service;"
-mysql -h 127.0.0.1 -uroot -e "CREATE USER IF NOT EXISTS '${SPRING_DATASOURCE_USERNAME}'@'127.0.0.1' IDENTIFIED BY '${SPRING_DATASOURCE_PASSWORD}';"
-mysql -h 127.0.0.1 -uroot -e "CREATE USER IF NOT EXISTS '${SPRING_DATASOURCE_USERNAME}'@'localhost' IDENTIFIED BY '${SPRING_DATASOURCE_PASSWORD}';"
-mysql -h 127.0.0.1 -uroot -e "GRANT ALL PRIVILEGES ON food_service.* TO '${SPRING_DATASOURCE_USERNAME}'@'127.0.0.1';"
-mysql -h 127.0.0.1 -uroot -e "GRANT ALL PRIVILEGES ON food_service.* TO '${SPRING_DATASOURCE_USERNAME}'@'localhost';"
-mysql -h 127.0.0.1 -uroot -e "FLUSH PRIVILEGES;"
+mysql --protocol=socket --user=root -e "CREATE DATABASE IF NOT EXISTS food_service;"
+mysql --protocol=socket --user=root -e "CREATE USER IF NOT EXISTS '${SPRING_DATASOURCE_USERNAME}'@'127.0.0.1' IDENTIFIED BY '${SPRING_DATASOURCE_PASSWORD}';"
+mysql --protocol=socket --user=root -e "CREATE USER IF NOT EXISTS '${SPRING_DATASOURCE_USERNAME}'@'localhost' IDENTIFIED BY '${SPRING_DATASOURCE_PASSWORD}';"
+mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON food_service.* TO '${SPRING_DATASOURCE_USERNAME}'@'127.0.0.1';"
+mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON food_service.* TO '${SPRING_DATASOURCE_USERNAME}'@'localhost';"
+mysql --protocol=socket --user=root -e "FLUSH PRIVILEGES;"
 
 exec su -s /bin/bash appuser -c "java -jar /app/app.jar"
 EOF
