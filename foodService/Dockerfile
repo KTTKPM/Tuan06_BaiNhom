@@ -52,7 +52,7 @@ mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON food_service.* T
 mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON food_service.* TO '${SPRING_DATASOURCE_USERNAME}'@'localhost';"
 mysql --protocol=socket --user=root -e "FLUSH PRIVILEGES;"
 
-exec su -s /bin/bash appuser -c "java -jar /app/app.jar"
+exec su -s /bin/bash appuser -c "/opt/java/openjdk/bin/java -jar /app/app.jar"
 EOF
 
 RUN sed -i 's/\r$//' /usr/local/bin/start-food-service.sh && chmod +x /usr/local/bin/start-food-service.sh
