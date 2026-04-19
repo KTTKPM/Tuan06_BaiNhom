@@ -24,14 +24,14 @@ export default function CartPage() {
 
   async function handleCheckout() {
     if (!user?.id) {
-      const message = "Khong tim thay thong tin user";
+      const message = "Không tìm thấy thông tin người dùng";
       setError(message);
       notification.error(message);
       return;
     }
 
     if (items.length === 0) {
-      const message = "Gio hang dang trong";
+      const message = "Giỏ hàng đang trống";
       setError(message);
       notification.error(message);
       return;
@@ -46,21 +46,21 @@ export default function CartPage() {
       });
 
       clearCart();
-      notification.success(`Dat don #${order.id} thanh cong`);
-      console.log(`User ${user.username} da dat don #${order.id} thanh cong`);
+      notification.success(`Đặt đơn #${order.id} thành công`);
+      console.log(`User ${user.username} đã đặt đơn #${order.id} thành công`);
       navigate(APP_ROUTES.orders);
     } catch (checkoutError) {
       const message =
         checkoutError && typeof checkoutError === "object" && "message" in checkoutError
           ? String(checkoutError.message)
-          : "Khong the tao don hang";
+          : "Không thể tạo đơn hàng";
       setError(message);
       notification.error(message);
     }
   }
 
   if (!isReady) {
-    return <p>Dang khoi tao...</p>;
+    return <p>Đang khởi tạo...</p>;
   }
 
   if (!isAuthenticated) {
@@ -70,15 +70,15 @@ export default function CartPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Gio hang</h1>
+        <h1 className="text-2xl font-semibold">Giỏ hàng</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Kiem tra lai mon an truoc khi tao don.
+          Kiểm tra lại món ăn trước khi tạo đơn.
         </p>
       </header>
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-8 text-center">
-          <p className="font-medium">Gio hang cua ban dang trong.</p>
+          <p className="font-medium">Giỏ hàng của bạn đang trống.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -96,9 +96,9 @@ export default function CartPage() {
 
       <section className="rounded-lg border border-border bg-card p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-lg font-semibold">Tong thanh toan: {formatCurrency(totalAmount)}</p>
+          <p className="text-lg font-semibold">Tổng thanh toán: {formatCurrency(totalAmount)}</p>
           <Button type="button" onClick={handleCheckout} disabled={items.length === 0 || isSubmitting}>
-            {isSubmitting ? "Dang tao don..." : "Tao don hang"}
+            {isSubmitting ? "Đang tạo đơn..." : "Tạo đơn hàng"}
           </Button>
         </div>
 

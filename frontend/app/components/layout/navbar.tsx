@@ -6,9 +6,9 @@ import { APP_ROUTES } from "~/lib/constants";
 import { cn } from "~/lib/utils";
 
 const protectedLinks = [
-  { to: APP_ROUTES.foods, label: "Mon an" },
-  { to: APP_ROUTES.cart, label: "Gio hang" },
-  { to: APP_ROUTES.orders, label: "Don hang" },
+  { to: APP_ROUTES.foods, label: "Món ăn" },
+  { to: APP_ROUTES.cart, label: "Giỏ hàng" },
+  { to: APP_ROUTES.orders, label: "Đơn hàng" },
 ];
 
 export function Navbar() {
@@ -49,7 +49,7 @@ export function Navbar() {
                 className="ml-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
                 onClick={logout}
               >
-                Dang xuat
+                Đăng xuất
               </button>
             </>
           ) : (
@@ -63,7 +63,7 @@ export function Navbar() {
                   )
                 }
               >
-                Dang nhap
+                Đăng nhập
               </NavLink>
               <NavLink
                 to={APP_ROUTES.register}
@@ -74,7 +74,7 @@ export function Navbar() {
                   )
                 }
               >
-                Dang ky
+                Đăng ký
               </NavLink>
             </>
           )}

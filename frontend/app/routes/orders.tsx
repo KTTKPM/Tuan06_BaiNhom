@@ -38,7 +38,7 @@ export default function OrdersPage() {
         const message =
           ordersError && typeof ordersError === "object" && "message" in ordersError
             ? String(ordersError.message)
-            : "Khong the tai danh sach don hang";
+            : "Không thể tải danh sách đơn hàng";
         setErrorMessage(message);
         notification.error(message);
       }
@@ -46,7 +46,7 @@ export default function OrdersPage() {
   }, [isReady, isAuthenticated, user, refreshOrders, notification]);
 
   if (!isReady) {
-    return <p>Dang khoi tao...</p>;
+    return <p>Đang khởi tạo...</p>;
   }
 
   if (!isAuthenticated || !user) {
@@ -56,8 +56,8 @@ export default function OrdersPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Don hang</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Danh sach don hang cua he thong.</p>
+        <h1 className="text-2xl font-semibold">Đơn hàng</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Danh sách đơn hàng của hệ thống.</p>
       </header>
 
       <OrderList orders={visibleOrders} isLoading={isLoading} errorMessage={errorMessage} />

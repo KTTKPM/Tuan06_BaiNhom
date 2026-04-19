@@ -25,7 +25,7 @@ export function OrderList({
   if (errorMessage) {
     return (
       <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
-        <p className="font-medium">Khong the tai danh sach don hang.</p>
+        <p className="font-medium">Không thể tải danh sách đơn hàng.</p>
         <p className="mt-1 text-sm text-muted-foreground">{errorMessage}</p>
       </div>
     );
@@ -34,7 +34,7 @@ export function OrderList({
   if (orders.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-8 text-center">
-        <p className="font-medium">Ban chua co don hang nao.</p>
+        <p className="font-medium">Bạn chưa có đơn hàng nào.</p>
       </div>
     );
   }
@@ -44,17 +44,17 @@ export function OrderList({
       {orders.map((order) => (
         <article key={order.id} className="rounded-lg border border-border bg-card p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold">Don #{order.id}</h3>
-            <span className="rounded-md bg-muted px-2 py-1 text-sm">Order: {order.status}</span>
+            <h3 className="font-semibold">Đơn #{order.id}</h3>
+            <span className="rounded-md bg-muted px-2 py-1 text-sm">Trạng thái: {order.status}</span>
           </div>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Tao luc: {formatDateTime(order.createdAt)}
+            Tạo lúc: {formatDateTime(order.createdAt)}
           </p>
 
-          <p className="mt-1 text-sm text-muted-foreground">User ID: {order.userId}</p>
+          <p className="mt-1 text-sm text-muted-foreground">Người dùng: {order.userId}</p>
 
-          <p className="mt-3 font-semibold">Tong tien: {formatCurrency(Number(order.totalAmount))}</p>
+          <p className="mt-3 font-semibold">Tổng tiền: {formatCurrency(Number(order.totalAmount))}</p>
         </article>
       ))}
     </div>

@@ -14,7 +14,7 @@ export default function Home() {
   const { isReady, isAuthenticated } = useAuth();
 
   if (!isReady) {
-    return <p>Dang khoi tao he thong...</p>;
+    return <p>Đang khởi tạo hệ thống...</p>;
   }
 
   return (

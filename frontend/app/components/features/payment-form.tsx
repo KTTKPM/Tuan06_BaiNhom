@@ -31,13 +31,13 @@ export function PaymentForm({ orderId, userId, disabled, onPaid }: PaymentFormPr
       });
 
       onPaid(updatedOrder);
-      notification.success(`Thanh toan don #${orderId} thanh cong`);
-      console.log(`User ${userId ?? "Unknown"} da thanh toan don #${orderId} thanh cong`);
+      notification.success(`Thanh toán đơn #${orderId} thành công`);
+      console.log(`Người dùng ${userId ?? "Unknown"} đã thanh toán đơn #${orderId} thành công`);
     } catch (paymentError) {
       const message =
         paymentError && typeof paymentError === "object" && "message" in paymentError
           ? String(paymentError.message)
-          : "Thanh toan that bai";
+          : "Thanh toán thất bại";
       setError(message);
       notification.error(message);
     } finally {
@@ -48,7 +48,7 @@ export function PaymentForm({ orderId, userId, disabled, onPaid }: PaymentFormPr
   return (
     <form className="space-y-2 rounded-md border border-border bg-muted/40 p-3" onSubmit={handleSubmit}>
       <label className="block text-sm font-medium" htmlFor={`payment-method-${orderId}`}>
-        Phuong thuc thanh toan
+        Phương thức thanh toán
       </label>
       <select
         id={`payment-method-${orderId}`}
@@ -64,7 +64,7 @@ export function PaymentForm({ orderId, userId, disabled, onPaid }: PaymentFormPr
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <Button type="submit" disabled={disabled || isSubmitting}>
-        {isSubmitting ? "Dang thanh toan..." : "Thanh toan"}
+        {isSubmitting ? "Đang thanh toán..." : "Thanh toán"}
       </Button>
     </form>
   );

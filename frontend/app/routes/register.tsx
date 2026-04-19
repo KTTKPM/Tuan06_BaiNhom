@@ -39,7 +39,7 @@ export default function RegisterPage() {
     setError(null);
 
     if (payload.password !== confirmPassword) {
-      const message = "Mat khau xac nhan khong khop";
+      const message = "Mật khẩu xác nhận không khớp";
       setError(message);
       notification.error(message);
       return;
@@ -51,7 +51,7 @@ export default function RegisterPage() {
         password: payload.password,
         role: payload.role,
       });
-      notification.success("Dang ky thanh cong");
+      notification.success("Đăng ký thành công");
 
       if (hasSession) {
         navigate(APP_ROUTES.foods, { replace: true });
@@ -62,20 +62,20 @@ export default function RegisterPage() {
       const message =
         registerError && typeof registerError === "object" && "message" in registerError
           ? String(registerError.message)
-          : "Dang ky that bai";
+          : "Đăng ký thất bại";
       setError(message);
       notification.error(message);
     }
   }
 
   if (!isReady) {
-    return <p>Dang khoi tao phien...</p>;
+    return <p>Đang khởi tạo phiên...</p>;
   }
 
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm">
-      <h1 className="text-2xl font-semibold">Dang ky</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Tao tai khoan de bat dau dat mon</p>
+      <h1 className="text-2xl font-semibold">Đăng ký</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Tạo tài khoản để bắt đầu đặt món</p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
@@ -87,14 +87,14 @@ export default function RegisterPage() {
             name="username"
             value={payload.username}
             onChange={handlePayloadChange}
-            placeholder="Nhap username"
+            placeholder="Nhập tên đăng nhập"
             required
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium">
-            Mat khau
+            Mật khẩu
           </label>
           <Input
             id="password"
@@ -102,14 +102,14 @@ export default function RegisterPage() {
             type="password"
             value={payload.password}
             onChange={handlePayloadChange}
-            placeholder="Nhap mat khau"
+            placeholder="Nhập mật khẩu"
             required
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="role" className="text-sm font-medium">
-            Vai tro
+            Vai trò
           </label>
           <select
             id="role"
@@ -126,14 +126,14 @@ export default function RegisterPage() {
 
         <div className="space-y-2">
           <label htmlFor="confirmPassword" className="text-sm font-medium">
-            Xac nhan mat khau
+            Xác nhận mật khẩu
           </label>
           <Input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="Nhap lai mat khau"
+            placeholder="Nhập lại mật khẩu"
             required
           />
         </div>
@@ -141,12 +141,12 @@ export default function RegisterPage() {
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Dang tao tai khoan..." : "Dang ky"}
+          {isSubmitting ? "Đang tạo tài khoản..." : "Đăng ký"}
         </Button>
       </form>
 
       <p className="mt-4 text-sm text-center text-muted-foreground">
-        Da co tai khoan? <Link to={APP_ROUTES.login} className="font-medium text-primary">Dang nhap</Link>
+        Đã có tài khoản? <Link to={APP_ROUTES.login} className="font-medium text-primary">Đăng nhập</Link>
       </p>
     </section>
   );
