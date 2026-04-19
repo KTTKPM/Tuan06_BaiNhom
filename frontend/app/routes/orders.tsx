@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { OrderList } from "~/components/features/order-list";
 import { useAuth } from "~/hooks/use-auth";
 import { useNotification } from "~/hooks/use-notification";
 import { useOrders } from "~/hooks/use-orders";
 import { useRequireAuth } from "~/hooks/use-route-guards";
+import type { PaymentResult } from "~/types/models";
 
 export default function OrdersPage() {
   useRequireAuth();
 
   const { user, isReady, isAuthenticated } = useAuth();
-  const { orders, isLoading, refreshOrders } = useOrders();
+  const { orders, isLoading, refreshOrders, applyOrderUpdate } = useOrders();
   const notification = useNotification();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -25,6 +26,18 @@ export default function OrdersPage() {
 
     return orders.filter((order) => String(order.userId) === String(user.id));
   }, [orders, user]);
+
+  const handlePaymentSuccess = useCallback(
+    (paymentResult: PaymentResult) => {
+      if (paymentResult.order) {
+        applyOrderUpdate(paymentResult.order);
+        return;
+      }
+
+      void refreshOrders();
+    },
+    [applyOrderUpdate, refreshOrders],
+  );
 
   useEffect(() => {
     if (!isReady || !isAuthenticated || !user) {
@@ -60,7 +73,14 @@ export default function OrdersPage() {
         <p className="mt-1 text-sm text-muted-foreground">Danh sách đơn hàng của hệ thống.</p>
       </header>
 
-      <OrderList orders={visibleOrders} isLoading={isLoading} errorMessage={errorMessage} />
+      <OrderList
+        orders={visibleOrders}
+        isLoading={isLoading}
+        errorMessage={errorMessage}
+        currentUserId={user.id}
+        isAdmin={user.role === "ADMIN"}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </section>
   );
 }

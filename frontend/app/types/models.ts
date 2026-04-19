@@ -55,6 +55,23 @@ export interface PaymentPayload {
   userId?: number | string;
 }
 
+export interface PaymentRecord {
+  id?: number | string;
+  orderId: number | string;
+  customerName: string;
+  paymentMethod: PaymentMethod | string;
+  status: PaymentStatus | string;
+  createdAt?: string;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  message: string;
+  dbStatus?: string;
+  payment?: PaymentRecord;
+  order?: Order;
+}
+
 export interface ApiError {
   message: string;
   status?: number;
