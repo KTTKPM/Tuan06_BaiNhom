@@ -53,7 +53,7 @@ mysql -h 127.0.0.1 -uroot -e "FLUSH PRIVILEGES;"
 exec su -s /bin/bash node -c "node server.js"
 EOF
 
-RUN chmod +x /usr/local/bin/start-cart-service.sh
+RUN sed -i 's/\r$//' /usr/local/bin/start-cart-service.sh && chmod +x /usr/local/bin/start-cart-service.sh
 
 EXPOSE 8083
 

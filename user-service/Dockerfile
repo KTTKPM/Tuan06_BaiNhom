@@ -55,7 +55,7 @@ mysql -h 127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" -e "CREATE TABLE I
 exec su -s /bin/bash node -c "node src/app.js"
 EOF
 
-RUN chmod +x /usr/local/bin/start-user-service.sh
+RUN sed -i 's/\r$//' /usr/local/bin/start-user-service.sh && chmod +x /usr/local/bin/start-user-service.sh
 
 EXPOSE 8081
 

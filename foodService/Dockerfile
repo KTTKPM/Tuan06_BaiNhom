@@ -55,7 +55,7 @@ mysql -h 127.0.0.1 -uroot -e "FLUSH PRIVILEGES;"
 exec su -s /bin/bash appuser -c "java -jar /app/app.jar"
 EOF
 
-RUN chmod +x /usr/local/bin/start-food-service.sh
+RUN sed -i 's/\r$//' /usr/local/bin/start-food-service.sh && chmod +x /usr/local/bin/start-food-service.sh
 
 EXPOSE 8082
 
