@@ -44,11 +44,11 @@ for i in {1..60}; do
   sleep 1
 done
 
-mysql --protocol=socket --user=root -e "CREATE DATABASE IF NOT EXISTS \\`${DB_NAME}\\`;"
+mysql --protocol=socket --user=root -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME};"
 mysql --protocol=socket --user=root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'127.0.0.1' IDENTIFIED BY '${DB_PASS}';"
 mysql --protocol=socket --user=root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
-mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON \\`${DB_NAME}\\`.* TO '${DB_USER}'@'127.0.0.1';"
-mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON \\`${DB_NAME}\\`.* TO '${DB_USER}'@'localhost';"
+mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1';"
+mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
 mysql --protocol=socket --user=root -e "FLUSH PRIVILEGES;"
 mysql -h 127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" -e "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role VARCHAR(50) DEFAULT 'USER');"
 
