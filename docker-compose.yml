@@ -9,6 +9,8 @@ services:
       CORS_ALLOWED_ORIGINS: *backend-cors-origins
     ports:
       - "8083:8083"
+    volumes:
+      - cart_service_db_data:/var/lib/mysql
     restart: unless-stopped
     networks:
       - app-net
@@ -22,6 +24,8 @@ services:
       CORS_ALLOWED_ORIGINS: *backend-cors-origins
     ports:
       - "8081:8081"
+    volumes:
+      - user_service_db_data:/var/lib/mysql
     restart: unless-stopped
     networks:
       - app-net
@@ -34,6 +38,8 @@ services:
       CORS_ALLOWED_ORIGINS: *backend-cors-origins
     ports:
       - "8082:8082"
+    volumes:
+      - food_service_db_data:/var/lib/mysql
     restart: unless-stopped
     networks:
       - app-net
@@ -50,6 +56,8 @@ services:
         condition: service_started
     ports:
       - "8084:8084"
+    volumes:
+      - payment_service_db_data:/var/lib/mysql
     restart: unless-stopped
     networks:
       - app-net
@@ -77,6 +85,12 @@ services:
     restart: unless-stopped
     networks:
       - app-net
+
+volumes:
+  cart_service_db_data:
+  user_service_db_data:
+  food_service_db_data:
+  payment_service_db_data:
 
 networks:
   app-net:
