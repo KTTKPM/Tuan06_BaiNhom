@@ -1,7 +1,7 @@
 import { orderApi } from "~/services/http";
 import type { CreateOrderPayload, Order } from "~/types/models";
 
-const ORDER_SERVICE_BASE_PATH = "/orders";
+const ORDER_SERVICE_BASE_PATH = "/order";
 
 function unwrapData<T>(value: unknown): T | null {
   if (value && typeof value === "object" && "data" in value) {
