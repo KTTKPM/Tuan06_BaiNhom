@@ -43,6 +43,11 @@ export class UpstreamHttpService {
         response.setHeader("content-type", contentType);
       }
 
+      const setCookieHeaders = upstreamResponse.headers["set-cookie"];
+      if (setCookieHeaders) {
+        response.setHeader("set-cookie", setCookieHeaders);
+      }
+
       response.status(upstreamResponse.status).send(upstreamResponse.data);
       return;
     } catch (error) {

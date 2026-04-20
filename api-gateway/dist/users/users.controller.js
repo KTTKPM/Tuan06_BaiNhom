@@ -38,6 +38,22 @@ let UsersController = class UsersController {
             targetPath: "/api/users/login",
         });
     }
+    async refresh(request, response) {
+        await this.upstreamHttpService.forward({
+            request,
+            response,
+            targetBaseUrl: this.userServiceUrl,
+            targetPath: "/api/users/refresh",
+        });
+    }
+    async logout(request, response) {
+        await this.upstreamHttpService.forward({
+            request,
+            response,
+            targetBaseUrl: this.userServiceUrl,
+            targetPath: "/api/users/logout",
+        });
+    }
     async getUsers(request, response) {
         await this.upstreamHttpService.forward({
             request,
@@ -69,6 +85,23 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "login", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)("refresh"),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "refresh", null);
+__decorate([
+    (0, common_1.Post)("logout"),
+    __param(0, (0, common_1.Req)()),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "logout", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Req)()),

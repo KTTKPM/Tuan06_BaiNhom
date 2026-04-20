@@ -14,4 +14,7 @@ skills-lock.json
 /user-service/node_modules/
 /user-service/.env
 
-.vscode/
+/.vscode/
+
+/**/dist/
+/**/build/

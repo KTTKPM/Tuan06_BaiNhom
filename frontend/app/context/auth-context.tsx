@@ -1,7 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useReducer } from "react";
 
-import { STORAGE_KEYS } from "~/lib/constants";
-import { loginUser, registerUser } from "~/services/auth.service";
+import { AUTH_EVENTS, STORAGE_KEYS } from "~/lib/constants";
+import { loginUser, logoutUser, registerUser } from "~/services/auth.service";
 import type { LoginPayload, RegisterPayload } from "~/services/auth.service";
 import type { AuthSession, User } from "~/types/models";
 
@@ -115,10 +115,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: "HYDRATE", payload: readStoredSession() });
   }, []);
 
-  const logout = useCallback(() => {
+  const clearSession = useCallback(() => {
     persistSession(null);
     dispatch({ type: "CLEAR_SESSION" });
   }, []);
+
+  const logout = useCallback(() => {
+    void logoutUser().catch(() => undefined);
+    clearSession();
+  }, [clearSession]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const onSessionExpired = () => {
+      clearSession();
+    };
+
+    window.addEventListener(AUTH_EVENTS.sessionExpired, onSessionExpired);
+
+    return () => {
+      window.removeEventListener(AUTH_EVENTS.sessionExpired, onSessionExpired);
+    };
+  }, [clearSession]);
 
   const login = useCallback(async (input: LoginPayload) => {
     dispatch({ type: "SUBMIT_START" });

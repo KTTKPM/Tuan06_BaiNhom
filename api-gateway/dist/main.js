@@ -34,7 +34,7 @@ async function bootstrap() {
             callback(null, false);
         },
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
+        allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
         credentials: true,
     });
     app.useGlobalPipes(new common_1.ValidationPipe({

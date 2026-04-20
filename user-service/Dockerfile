@@ -9,6 +9,14 @@ FROM node:20.19.0-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     PORT=8081 \
     JWT_SECRET=local_dev_secret \
+  JWT_ACCESS_EXPIRES_IN=15m \
+  JWT_REFRESH_SECRET=local_dev_refresh_secret \
+  JWT_REFRESH_EXPIRES_IN=7d \
+  JWT_REFRESH_TTL_MS=604800000 \
+  JWT_REFRESH_COOKIE_NAME=mfos_refresh_token \
+  JWT_REFRESH_COOKIE_PATH=/api/users \
+  JWT_REFRESH_COOKIE_SAMESITE=lax \
+  JWT_REFRESH_COOKIE_SECURE=false \
     DB_HOST=127.0.0.1 \
     DB_PORT=3306 \
     DB_USER=user_app \
@@ -50,7 +58,9 @@ mysql --protocol=socket --user=root -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'
 mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'127.0.0.1';"
 mysql --protocol=socket --user=root -e "GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';"
 mysql --protocol=socket --user=root -e "FLUSH PRIVILEGES;"
-mysql -h 127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" -e "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role VARCHAR(50) DEFAULT 'USER');"
+mysql -h 127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" -e "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(255) UNIQUE NOT NULL, password VARCHAR(255) NOT NULL, role VARCHAR(50) DEFAULT 'USER', refresh_token_hash VARCHAR(255) NULL, refresh_token_expires_at DATETIME NULL);"
+mysql -h 127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" -e "ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token_hash VARCHAR(255) NULL;"
+mysql -h 127.0.0.1 -u"${DB_USER}" -p"${DB_PASS}" "${DB_NAME}" -e "ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token_expires_at DATETIME NULL;"
 
 exec su -s /bin/bash node -c "node src/app.js"
 EOF

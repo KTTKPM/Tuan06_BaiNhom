@@ -34,6 +34,10 @@ let UpstreamHttpService = class UpstreamHttpService {
             if (contentType) {
                 response.setHeader("content-type", contentType);
             }
+            const setCookieHeaders = upstreamResponse.headers["set-cookie"];
+            if (setCookieHeaders) {
+                response.setHeader("set-cookie", setCookieHeaders);
+            }
             response.status(upstreamResponse.status).send(upstreamResponse.data);
             return;
         }
@@ -52,7 +56,9 @@ let UpstreamHttpService = class UpstreamHttpService {
         }
     }
     buildTargetUrl(baseUrl, path) {
-        const normalizedBase = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+        const normalizedBase = baseUrl.endsWith("/")
+            ? baseUrl.slice(0, -1)
+            : baseUrl;
         const normalizedPath = path.startsWith("/") ? path : `/${path}`;
         return `${normalizedBase}${normalizedPath}`;
     }

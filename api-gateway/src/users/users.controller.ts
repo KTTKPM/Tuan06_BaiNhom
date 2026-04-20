@@ -34,6 +34,27 @@ export class UsersController {
     });
   }
 
+  @Public()
+  @Post("refresh")
+  async refresh(@Req() request: Request, @Res() response: Response) {
+    await this.upstreamHttpService.forward({
+      request,
+      response,
+      targetBaseUrl: this.userServiceUrl,
+      targetPath: "/api/users/refresh",
+    });
+  }
+
+  @Post("logout")
+  async logout(@Req() request: Request, @Res() response: Response) {
+    await this.upstreamHttpService.forward({
+      request,
+      response,
+      targetBaseUrl: this.userServiceUrl,
+      targetPath: "/api/users/logout",
+    });
+  }
+
   @Get()
   async getUsers(@Req() request: Request, @Res() response: Response) {
     await this.upstreamHttpService.forward({
