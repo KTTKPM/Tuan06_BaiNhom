@@ -1,12 +1,10 @@
 import { userApi } from "~/services/http";
 import type { AuthSession, User } from "~/types/models";
 
-const USER_SERVICE_BASE_PATH = "/api/users";
-
 export interface RegisterPayload {
   username: string;
   password: string;
-  role?: "USER" | "ADMIN";
+  role: "USER" | "ADMIN";
 }
 
 export interface LoginPayload {
@@ -14,65 +12,66 @@ export interface LoginPayload {
   password: string;
 }
 
-function coerceUser(rawUser: unknown): User | null {
-  if (!rawUser || typeof rawUser !== "object") {
-    return null;
+export interface LoginResponse {
+  token: string;
+  accessToken?: string;
+  user: {
+    id: number;
+    username: string;
+    role: "USER" | "ADMIN";
   }
-
-  const value = rawUser as {
-    id?: string | number;
-    username?: string;
-    email?: string;
-    role?: "USER" | "ADMIN";
-  };
-
-  if (!value.id || !value.username || !value.role) {
-    return null;
-  }
-
-  return {
-    id: value.id,
-    username: value.username,
-    email: value.email,
-    role: value.role,
-  };
 }
 
-function normalizeAuthResponse(data: unknown): AuthSession | null {
-  const payload = data as {
+export interface RegisterResponse {
+  data: {
+    id: number;
+    username: string;
+    role: "USER" | "ADMIN";
+  }
+  message: string;
+}
+
+export async function registerUser(input: RegisterPayload): Promise<RegisterResponse | null> {
+  const response = await userApi.post("/register", input);
+  return response?.data;
+}
+
+function normalizeAuthSessionPayload(payload: unknown): LoginResponse | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const response = payload as {
     token?: string;
     accessToken?: string;
-    user?: User;
+    user?: LoginResponse["user"];
     data?: {
       token?: string;
       accessToken?: string;
-      user?: User;
+      user?: LoginResponse["user"];
     };
   };
 
-  const token =
-    payload.token || payload.accessToken || payload.data?.token || payload.data?.accessToken;
-
-  const user = coerceUser(payload.user) || coerceUser(payload.data?.user);
+  const token = response.token || response.accessToken || response.data?.token || response.data?.accessToken;
+  const user = response.user || response.data?.user;
 
   if (!token || !user) {
     return null;
   }
 
-  return { token, user };
+  return {
+    token,
+    accessToken: token,
+    user,
+  };
 }
 
-export async function registerUser(input: RegisterPayload): Promise<AuthSession | null> {
-  const response = await userApi.post(`${USER_SERVICE_BASE_PATH}/register`, input);
-  return normalizeAuthResponse(response.data);
-}
-
-export async function loginUser(input: LoginPayload): Promise<AuthSession> {
-  const response = await userApi.post(`${USER_SERVICE_BASE_PATH}/login`, {
+export async function loginUser(input: LoginPayload): Promise<LoginResponse | null> {
+  const response = await userApi.post("/login", {
     username: input.username,
     password: input.password,
   });
-  const session = normalizeAuthResponse(response.data);
+  const session = normalizeAuthSessionPayload(response?.data);
 
   if (!session) {
     throw { message: "Invalid login response from server" };
@@ -81,7 +80,22 @@ export async function loginUser(input: LoginPayload): Promise<AuthSession> {
   return session;
 }
 
+export async function refreshUserSession(): Promise<LoginResponse | null> {
+  const response = await userApi.post("/refresh");
+  const session = normalizeAuthSessionPayload(response?.data);
+
+  if (!session) {
+    throw { message: "Invalid refresh response from server" };
+  }
+
+  return session;
+}
+
+export async function logoutUser(): Promise<void> {
+  await userApi.post("/logout");
+}
+
 export async function getUsers(): Promise<User[]> {
-  const response = await userApi.get<User[]>(USER_SERVICE_BASE_PATH);
-  return response.data;
+  const response = await userApi.get<User[]>("/");
+  return response?.data || [];
 }

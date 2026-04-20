@@ -20,24 +20,24 @@ export function FoodItem({
   return (
     <article className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <h3 className="text-base font-semibold">{food.name}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">Danh muc: {food.category}</p>
+      <p className="mt-1 text-sm text-muted-foreground">Danh mục: {food.category}</p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Trang thai: {food.available ? "Con ban" : "Het hang"}
+        Trạng thái: {food.available ? "Còn bán" : "Hết hàng"}
       </p>
       <p className="mt-3 font-semibold text-primary">{formatCurrency(food.price)}</p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         <Button type="button" onClick={() => onAddToCart(food)} disabled={!food.available}>
-          Add to Cart
+          Thêm vào giỏ
         </Button>
 
         {canManage ? (
           <>
             <Button type="button" variant="outline" onClick={() => onEdit(food)}>
-              Edit
+              Sửa
             </Button>
             <Button type="button" variant="destructive" onClick={() => onDelete(food.id)}>
-              Delete
+              Xóa
             </Button>
           </>
         ) : null}

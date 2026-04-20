@@ -40,7 +40,7 @@ export default function LoginPage() {
         username: payload.username.trim(),
         password: payload.password,
       });
-      notification.success("Dang nhap thanh cong");
+      notification.success("Đăng nhập thành công");
 
       const redirectTo =
         (location.state as { from?: string } | undefined)?.from || APP_ROUTES.foods;
@@ -50,20 +50,20 @@ export default function LoginPage() {
       const message =
         loginError && typeof loginError === "object" && "message" in loginError
           ? String(loginError.message)
-          : "Dang nhap that bai";
+          : "Đăng nhập thất bại";
       setError(message);
       notification.error(message);
     }
   }
 
   if (!isReady) {
-    return <p>Dang khoi tao phien dang nhap...</p>;
+    return <p>Đang khởi tạo phiên đăng nhập...</p>;
   }
 
   return (
     <section className="mx-auto w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-sm">
-      <h1 className="text-2xl font-semibold">Dang nhap</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Su dung tai khoan noi bo de dat mon</p>
+      <h1 className="text-2xl font-semibold">Đăng nhập</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Sử dụng tài khoản nội bộ để đặt món</p>
 
       <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
@@ -75,14 +75,14 @@ export default function LoginPage() {
             name="username"
             value={payload.username}
             onChange={handlePayloadChange}
-            placeholder="Nhap username"
+            placeholder="Nhập tên đăng nhập"
             required
           />
         </div>
 
         <div className="space-y-2">
           <label htmlFor="password" className="text-sm font-medium">
-            Mat khau
+            Mật khẩu
           </label>
           <Input
             id="password"
@@ -90,7 +90,7 @@ export default function LoginPage() {
             type="password"
             value={payload.password}
             onChange={handlePayloadChange}
-            placeholder="Nhap mat khau"
+            placeholder="Nhập mật khẩu"
             required
           />
         </div>
@@ -98,12 +98,12 @@ export default function LoginPage() {
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Dang dang nhap..." : "Dang nhap"}
+          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
         </Button>
       </form>
 
       <p className="mt-4 text-sm text-center text-muted-foreground">
-        Chua co tai khoan? <Link to={APP_ROUTES.register} className="font-medium text-primary">Dang ky</Link>
+        Chưa có tài khoản? <Link to={APP_ROUTES.register} className="font-medium text-primary">Đăng ký</Link>
       </p>
     </section>
   );

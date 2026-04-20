@@ -35,14 +35,14 @@ export function FoodList({
   if (errorMessage) {
     return (
       <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4">
-        <p className="font-medium">Khong the tai danh sach mon an.</p>
+        <p className="font-medium">Không thể tải danh sách món ăn.</p>
         <p className="mt-1 text-sm text-muted-foreground">{errorMessage}</p>
         <button
           type="button"
           className="mt-3 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
           onClick={onReload}
         >
-          Thu lai
+          Thử lại
         </button>
       </div>
     );
@@ -51,7 +51,7 @@ export function FoodList({
   if (foods.length === 0) {
     return (
       <div className="rounded-lg border border-dashed border-border p-8 text-center">
-        <p className="font-medium">Chua co mon an nao.</p>
+        <p className="font-medium">Chưa có món ăn nào.</p>
       </div>
     );
   }

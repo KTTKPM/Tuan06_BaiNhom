@@ -9,6 +9,7 @@ interface OrderContextValue {
   isSubmitting: boolean;
   refreshOrders: () => Promise<void>;
   placeOrder: (payload: CreateOrderPayload) => Promise<Order>;
+  applyOrderUpdate: (order: Order) => void;
 }
 
 export const OrderContext = createContext<OrderContextValue | undefined>(undefined);
@@ -41,6 +42,24 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const applyOrderUpdate = useCallback((updatedOrder: Order) => {
+    setOrders((current) => {
+      const matchedOrder = current.some(
+        (order) => String(order.id) === String(updatedOrder.id),
+      );
+
+      if (!matchedOrder) {
+        return [updatedOrder, ...current];
+      }
+
+      return current.map((order) =>
+        String(order.id) === String(updatedOrder.id)
+          ? { ...order, ...updatedOrder }
+          : order,
+      );
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       orders,
@@ -48,8 +67,9 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
       isSubmitting,
       refreshOrders,
       placeOrder,
+      applyOrderUpdate,
     }),
-    [orders, isLoading, isSubmitting, refreshOrders, placeOrder],
+    [orders, isLoading, isSubmitting, refreshOrders, placeOrder, applyOrderUpdate],
   );
 
   return <OrderContext.Provider value={value}>{children}</OrderContext.Provider>;

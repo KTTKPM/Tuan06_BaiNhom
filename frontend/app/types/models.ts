@@ -3,7 +3,6 @@ export type UserRole = "USER" | "ADMIN";
 export interface User {
   id: number | string;
   username: string;
-  email?: string;
   role: UserRole;
 }
 
@@ -54,6 +53,23 @@ export interface PaymentPayload {
   orderId: number | string;
   method: PaymentMethod;
   userId?: number | string;
+}
+
+export interface PaymentRecord {
+  id?: number | string;
+  orderId: number | string;
+  customerName: string;
+  paymentMethod: PaymentMethod | string;
+  status: PaymentStatus | string;
+  createdAt?: string;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  message: string;
+  dbStatus?: string;
+  payment?: PaymentRecord;
+  order?: Order;
 }
 
 export interface ApiError {

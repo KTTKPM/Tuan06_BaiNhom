@@ -1,170 +1,203 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError } from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
+import { AUTH_EVENTS, STORAGE_KEYS } from "~/lib/constants";
 
-import { STORAGE_KEYS } from "~/lib/constants";
-
-const RETRYABLE_METHOD = "GET";
-const RETRYABLE_STATUS_CODES = new Set([429, 502, 503, 504]);
-const RETRYABLE_ENDPOINTS = new Set([
-  "/foods",
-  "/orders",
-  "/users",
-  "/api/users",
-]);
-const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 300;
-const MAX_DELAY_MS = 3000;
-
-type RetryableRequestConfig = InternalAxiosRequestConfig & {
-  __retryCount?: number;
+type ApiErrorPayload = {
+  message?: string;
 };
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
+type AuthResponsePayload = {
+  token?: string;
+  accessToken?: string;
+  user?: unknown;
+  data?: {
+    token?: string;
+    accessToken?: string;
+    user?: unknown;
+  };
+};
+
+type RequestConfigWithRetry = InternalAxiosRequestConfig & {
+  _retry?: boolean;
+};
+
+let refreshPromise: Promise<string> | null = null;
+let hasNotifiedSessionExpired = false;
+
+function buildApiBaseUrl(): string {
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (!apiBaseUrl) {
+    throw new Error("Missing required env: VITE_API_BASE_URL");
+  }
+
+  return apiBaseUrl;
 }
 
-function normalizePath(url?: string): string {
+function normalizeBaseUrl(baseUrl: string): string {
+  return baseUrl.replace(/\/+$/, "");
+}
+
+function getStoredToken(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.localStorage.getItem(STORAGE_KEYS.token);
+}
+
+function setStoredSession(token: string, user?: unknown): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(STORAGE_KEYS.token, token);
+
+  if (user) {
+    window.localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+  }
+}
+
+function clearStoredSession(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(STORAGE_KEYS.token);
+  window.localStorage.removeItem(STORAGE_KEYS.user);
+}
+
+function extractAuthToken(payload: unknown): string | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const authPayload = payload as AuthResponsePayload;
+  return (
+    authPayload.token ||
+    authPayload.accessToken ||
+    authPayload.data?.token ||
+    authPayload.data?.accessToken ||
+    null
+  );
+}
+
+function extractAuthUser(payload: unknown): unknown {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const authPayload = payload as AuthResponsePayload;
+  return authPayload.user || authPayload.data?.user || null;
+}
+
+function notifySessionExpiredOnce(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (hasNotifiedSessionExpired) {
+    return;
+  }
+
+  hasNotifiedSessionExpired = true;
+  window.dispatchEvent(new Event(AUTH_EVENTS.sessionExpired));
+}
+
+function normalizeApiError(error: unknown): { message: string; status?: number } {
+  if (axios.isAxiosError(error)) {
+    const message =
+      error.response?.data?.message || error.message || "Unexpected API error";
+
+    return {
+      message,
+      status: error.response?.status,
+    };
+  }
+
+  if (error && typeof error === "object" && "message" in error) {
+    return {
+      message: String((error as { message?: unknown }).message || "Unexpected API error"),
+    };
+  }
+
+  return {
+    message: "Unexpected API error",
+  };
+}
+
+function isAuthEndpoint(url?: string): boolean {
   if (!url) {
-    return "";
-  }
-
-  try {
-    if (url.startsWith("http://") || url.startsWith("https://")) {
-      return new URL(url).pathname;
-    }
-  } catch {
-    return "";
-  }
-
-  const [pathOnly] = url.split("?");
-  const normalizedPath = pathOnly.startsWith("/") ? pathOnly : `/${pathOnly}`;
-
-  if (normalizedPath.length > 1 && normalizedPath.endsWith("/")) {
-    return normalizedPath.slice(0, -1);
-  }
-
-  return normalizedPath;
-}
-
-function isRetryableEndpoint(url?: string): boolean {
-  return RETRYABLE_ENDPOINTS.has(normalizePath(url));
-}
-
-function isTimeoutError(error: AxiosError): boolean {
-  return (
-    error.code === "ECONNABORTED" ||
-    error.message.toLowerCase().includes("timeout")
-  );
-}
-
-function isNetworkError(error: AxiosError): boolean {
-  if (error.response) {
     return false;
   }
 
-  if (error.code === "ERR_NETWORK") {
-    return true;
-  }
-
-  return /network\s+error/i.test(error.message);
-}
-
-function isRetryableStatus(status?: number): boolean {
-  return typeof status === "number" && RETRYABLE_STATUS_CODES.has(status);
-}
-
-function shouldRetry(
-  error: AxiosError,
-  requestConfig: RetryableRequestConfig,
-): boolean {
-  const method = requestConfig.method?.toUpperCase();
-
-  if (method !== RETRYABLE_METHOD) {
-    return false;
-  }
-
-  if (!isRetryableEndpoint(requestConfig.url)) {
-    return false;
-  }
+  const normalizedUrl = url.toLowerCase();
 
   return (
-    isTimeoutError(error) ||
-    isNetworkError(error) ||
-    isRetryableStatus(error.response?.status)
+    normalizedUrl.includes("/login") ||
+    normalizedUrl.includes("/refresh") ||
+    normalizedUrl.includes("/register") ||
+    normalizedUrl.includes("/logout")
   );
 }
 
-function getRetryAfterDelayMs(error: AxiosError): number | null {
-  if (error.response?.status !== 429) {
-    return null;
+async function refreshAccessToken(apiBaseUrl: string): Promise<string> {
+  if (refreshPromise) {
+    return refreshPromise;
   }
 
-  const retryAfter = error.response.headers?.["retry-after"];
+  refreshPromise = axios
+    .post<AuthResponsePayload>(
+      `${apiBaseUrl}/users/refresh`,
+      {},
+      {
+        timeout: 10000,
+        withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    )
+    .then((response) => {
+      const token = extractAuthToken(response?.data);
 
-  if (!retryAfter) {
-    return null;
-  }
+      if (!token) {
+        throw new Error("Invalid refresh response from server");
+      }
 
-  const seconds = Number.parseFloat(String(retryAfter));
+      setStoredSession(token, extractAuthUser(response?.data));
+      hasNotifiedSessionExpired = false;
 
-  if (!Number.isFinite(seconds) || seconds <= 0) {
-    return null;
-  }
+      return token;
+    })
+    .catch((error) => {
+      clearStoredSession();
+      notifySessionExpiredOnce();
+      throw normalizeApiError(error);
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
 
-  return Math.min(seconds * 1000, MAX_DELAY_MS);
+  return refreshPromise;
 }
 
-function computeRetryDelayMs(retryAttempt: number, error: AxiosError): number {
-  const retryAfterDelay = getRetryAfterDelayMs(error);
-
-  if (retryAfterDelay !== null) {
-    return retryAfterDelay;
-  }
-
-  const exponentialDelay = Math.min(
-    BASE_DELAY_MS * 2 ** (retryAttempt - 1),
-    MAX_DELAY_MS,
-  );
-  const jitter = Math.floor(Math.random() * (exponentialDelay * 0.2));
-
-  return Math.min(exponentialDelay + jitter, MAX_DELAY_MS);
-}
-
-function buildServiceBaseUrl(
-  serviceEnvName: "VITE_USER_SERVICE_URL" | "VITE_FOOD_SERVICE_URL" | "VITE_ORDER_SERVICE_URL" | "VITE_PAYMENT_SERVICE_URL",
-  fallback: string,
-): string {
-  const gatewayUrl = import.meta.env.VITE_API_GATEWAY_URL as string | undefined;
-
-  if (gatewayUrl) {
-    return gatewayUrl;
-  }
-
-  const explicitServiceUrl = import.meta.env[serviceEnvName] as string | undefined;
-
-  if (explicitServiceUrl) {
-    return explicitServiceUrl;
-  }
-
-  return fallback;
-}
-
-function createClient(baseURL: string) {
+function createClient(baseURL: string, extendedUrl: string) {
   const client = axios.create({
-    baseURL,
+    baseURL: `${baseURL}/${extendedUrl.replace(/^\/+/, "")}`,
     timeout: 10000,
+    withCredentials: true,
     headers: {
       "Content-Type": "application/json",
     },
   });
 
   client.interceptors.request.use((config) => {
-    if (typeof window !== "undefined") {
-      const token = window.localStorage.getItem(STORAGE_KEYS.token);
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    const token = getStoredToken();
+
+    if (token) {
+      hasNotifiedSessionExpired = false;
+      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
@@ -172,49 +205,53 @@ function createClient(baseURL: string) {
 
   client.interceptors.response.use(
     (response) => response,
-    async (error: AxiosError<{ message?: string }>) => {
-      const requestConfig = error.config as RetryableRequestConfig | undefined;
+    async (error: AxiosError<ApiErrorPayload>) => {
+      const requestConfig = error.config as RequestConfigWithRetry | undefined;
+      const isUnauthorized = error.response?.status === 401;
+      const canRetry =
+        Boolean(requestConfig) &&
+        isUnauthorized &&
+        !requestConfig?._retry &&
+        !isAuthEndpoint(requestConfig?.url);
 
-      if (requestConfig && shouldRetry(error, requestConfig)) {
-        const currentRetryCount = requestConfig.__retryCount ?? 0;
+      if (canRetry && requestConfig) {
+        requestConfig._retry = true;
 
-        if (currentRetryCount < MAX_RETRIES) {
-          const nextRetryCount = currentRetryCount + 1;
-          requestConfig.__retryCount = nextRetryCount;
-
-          const delayMs = computeRetryDelayMs(nextRetryCount, error);
-          await sleep(delayMs);
-
-          return client.request(requestConfig);
+        try {
+          const refreshedToken = await refreshAccessToken(baseURL);
+          requestConfig.headers.Authorization = `Bearer ${refreshedToken}`;
+          return client(requestConfig);
+        } catch {
+          return Promise.reject(normalizeApiError(error));
         }
       }
 
-      const message =
-        error.response?.data?.message || error.message || "Unexpected API error";
-
-      return Promise.reject({
-        message,
-        status: error.response?.status,
-        retryCount: requestConfig?.__retryCount ?? 0,
-      });
+      return Promise.reject(normalizeApiError(error));
     },
   );
 
   return client;
 }
 
+const API_BASE_URL = normalizeBaseUrl(buildApiBaseUrl());
+
 export const userApi = createClient(
-  buildServiceBaseUrl("VITE_USER_SERVICE_URL", "http://localhost:8081"),
+  API_BASE_URL,
+  "users"
 );
 
 export const foodApi = createClient(
-  buildServiceBaseUrl("VITE_FOOD_SERVICE_URL", "http://localhost:8082"),
+  API_BASE_URL,
+  "foods"
 );
 
 export const orderApi = createClient(
-  buildServiceBaseUrl("VITE_ORDER_SERVICE_URL", "http://localhost:8083"),
+  API_BASE_URL,
+  "orders"
+
 );
 
 export const paymentApi = createClient(
-  buildServiceBaseUrl("VITE_PAYMENT_SERVICE_URL", "http://localhost:8084"),
+  API_BASE_URL,
+  "payments"
 );

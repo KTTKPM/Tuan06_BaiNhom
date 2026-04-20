@@ -50,7 +50,7 @@ export default function FoodsPage() {
       const message =
         foodsError && typeof foodsError === "object" && "message" in foodsError
           ? String(foodsError.message)
-          : "Khong the tai mon an";
+          : "Không thể tải món ăn";
       setErrorMessage(message);
     } finally {
       setIsLoading(false);
@@ -67,7 +67,7 @@ export default function FoodsPage() {
 
   function handleAddToCart(food: Food) {
     addToCart(food);
-    notification.success(`Da them ${food.name} vao gio hang`);
+    notification.success(`Đã thêm ${food.name} vào giỏ hàng`);
   }
 
   function startEdit(food: Food) {
@@ -96,17 +96,17 @@ export default function FoodsPage() {
     };
 
     if (!payload.name || payload.name.length > 120) {
-      notification.error("Ten mon khong hop le (toi da 120 ky tu)");
+      notification.error("Tên món không hợp lệ (tối đa 120 ký tự)");
       return;
     }
 
     if (!payload.category || payload.category.length > 60) {
-      notification.error("Danh muc khong hop le (toi da 60 ky tu)");
+      notification.error("Danh mục không hợp lệ (tối đa 60 ký tự)");
       return;
     }
 
     if (Number.isNaN(payload.price) || payload.price <= 0) {
-      notification.error("Gia mon phai lon hon 0");
+      notification.error("Giá món phải lớn hơn 0");
       return;
     }
 
@@ -118,11 +118,11 @@ export default function FoodsPage() {
         setFoods((current) =>
           current.map((food) => (food.id === updated.id ? updated : food)),
         );
-        notification.success("Cap nhat mon an thanh cong");
+        notification.success("Cập nhật món ăn thành công");
       } else {
         const created = await createFood(payload);
         setFoods((current) => [created, ...current]);
-        notification.success("Them mon an thanh cong");
+        notification.success("Thêm món ăn thành công");
       }
 
       resetFoodForm();
@@ -130,7 +130,7 @@ export default function FoodsPage() {
       const message =
         upsertError && typeof upsertError === "object" && "message" in upsertError
           ? String(upsertError.message)
-          : "Khong the luu mon an";
+          : "Không thể lưu món ăn";
       notification.error(message);
     } finally {
       setIsSubmittingFood(false);
@@ -138,7 +138,7 @@ export default function FoodsPage() {
   }
 
   async function handleDeleteFood(foodId: number | string) {
-    const shouldDelete = window.confirm("Ban co chac muon xoa mon an nay?");
+    const shouldDelete = window.confirm("Bạn có chắc muốn xóa món ăn này?");
     if (!shouldDelete) {
       return;
     }
@@ -146,18 +146,18 @@ export default function FoodsPage() {
     try {
       await deleteFood(foodId);
       setFoods((current) => current.filter((food) => food.id !== foodId));
-      notification.success("Xoa mon an thanh cong");
+      notification.success("Xóa món ăn thành công");
     } catch (deleteError) {
       const message =
         deleteError && typeof deleteError === "object" && "message" in deleteError
           ? String(deleteError.message)
-          : "Khong the xoa mon an";
+          : "Không thể xóa món ăn";
       notification.error(message);
     }
   }
 
   if (!isReady) {
-    return <p>Dang khoi tao...</p>;
+    return <p>Đang khởi tạo...</p>;
   }
 
   if (!isAuthenticated) {
@@ -167,27 +167,27 @@ export default function FoodsPage() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold">Danh sach mon an</h1>
+        <h1 className="text-2xl font-semibold">Danh sách món ăn</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Chon mon, them vao gio, va dat hang trong vai buoc.
+          Chọn món, thêm vào giỏ, và đặt hàng trong vài bước.
         </p>
       </header>
 
       {canManageFood ? (
         <section className="rounded-xl border border-border bg-card p-4">
           <h2 className="text-lg font-semibold">
-            {editingFoodId ? "Cap nhat mon an" : "Them mon an"}
+            {editingFoodId ? "Cập nhật món ăn" : "Thêm món ăn"}
           </h2>
           <form className="mt-4 grid gap-3 md:grid-cols-3" onSubmit={handleUpsertFood}>
             <Input
-              placeholder="Ten mon"
+              placeholder="Tên món"
               value={foodForm.name}
               onChange={(event) =>
                 setFoodForm((current) => ({ ...current, name: event.target.value }))
               }
             />
             <Input
-              placeholder="Danh muc"
+              placeholder="Danh mục"
               value={foodForm.category}
               onChange={(event) =>
                 setFoodForm((current) => ({ ...current, category: event.target.value }))
@@ -197,7 +197,7 @@ export default function FoodsPage() {
               type="number"
               min={0.01}
               step="0.01"
-              placeholder="Gia"
+              placeholder="Giá"
               value={foodForm.price}
               onChange={(event) =>
                 setFoodForm((current) => ({ ...current, price: event.target.value }))
@@ -211,21 +211,21 @@ export default function FoodsPage() {
                 setFoodForm((current) => ({ ...current, available: event.target.value }))
               }
             >
-              <option value="true">Con ban</option>
-              <option value="false">Het hang</option>
+              <option value="true">Còn bán</option>
+              <option value="false">Hết hàng</option>
             </select>
 
             <div className="md:col-span-3 flex flex-wrap gap-2">
               <Button type="submit" disabled={isSubmittingFood}>
                 {isSubmittingFood
-                  ? "Dang xu ly..."
+                  ? "Đang xử lý..."
                   : editingFoodId
-                    ? "Luu thay doi"
-                    : "Them mon"}
+                    ? "Lưu thay đổi"
+                    : "Thêm món"}
               </Button>
               {editingFoodId ? (
                 <Button type="button" variant="outline" onClick={resetFoodForm}>
-                  Huy
+                  Hủy
                 </Button>
               ) : null}
             </div>

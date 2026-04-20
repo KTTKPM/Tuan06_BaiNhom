@@ -30,7 +30,7 @@ export function CartItem({ item, onIncrease, onDecrease, onRemove }: CartItemPro
       <div className="flex items-center gap-2">
         <p className="font-semibold">{formatCurrency(item.food.price * item.quantity)}</p>
         <Button type="button" variant="destructive" onClick={onRemove}>
-          Xoa
+          Xóa
         </Button>
       </div>
     </div>
