@@ -1,3 +1,11 @@
+# Thông tin nhóm
+
+Trương Công Hải - 22692311
+Đặng Trần Tấn Phát - 22649051
+Huỳnh Ánh Hưng - 22645171
+Lê Huỳnh Công Tiếp - 22692271
+Lê Minh Tuấn - 22697621
+
 # Docker Compose Run Guide
 
 Tai lieu nay huong dan chay toan bo he thong bang Docker Compose trong thu muc goc du an.
